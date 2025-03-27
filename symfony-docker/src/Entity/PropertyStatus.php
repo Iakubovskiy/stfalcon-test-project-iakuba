@@ -6,15 +6,18 @@ namespace App\Entity;
 use App\Repository\PropertyStatusRepository;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use JMS\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: PropertyStatusRepository::class)]
 class PropertyStatus
 {
     #[ORM\Id]
     #[ORM\Column]
+    #[Groups(["list", "details"])]
     private ?string $id = null;
 
     #[ORM\Column(length: 50)]
+    #[Groups(["list", "details"])]
     private ?string $name = null;
 
     #[ORM\OneToMany(targetEntity: Property::class, mappedBy: 'status')]
@@ -25,7 +28,7 @@ class PropertyStatus
         return $this->id;
     }
 
-    public function setId(?int $id): static
+    public function setId(string $id): static
     {
         $this->id = $id;
         return $this;

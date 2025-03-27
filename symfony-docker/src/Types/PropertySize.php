@@ -3,8 +3,12 @@ declare(strict_types=1);
 
 namespace App\Types;
 
+use JMS\Serializer\Annotation\Groups;
+
 class PropertySize{
+    #[Groups(["list", "details"])]
     private float $value;
+    #[Groups(["list", "details"])]
     private string $measurement;
 
     public function getValue(): float{

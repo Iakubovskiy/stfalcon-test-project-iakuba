@@ -3,9 +3,13 @@ declare(strict_types=1);
 
 namespace App\Types;
 
+use JMS\Serializer\Annotation\Groups;
+
 class PropertyLocation
 {
+    #[Groups(["list", "details"])]
     private string $address;
+    #[Groups(["list", "details"])]
     private Coordinates $coordinates;
 
     public function getAddress(): string

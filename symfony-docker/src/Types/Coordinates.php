@@ -3,9 +3,13 @@ declare(strict_types=1);
 
 namespace App\Types;
 
+use JMS\Serializer\Annotation\Groups;
+
 class Coordinates
 {
+    #[Groups(["list", "details"])]
     private float $latitude;
+    #[Groups(["list", "details"])]
     private float $longitude;
 
     public function getLatitude(): float{

@@ -4,9 +4,12 @@ declare(strict_types=1);
 namespace App\Types;
 
 use App\Entity\Currency;
+use JMS\Serializer\Annotation\Groups;
 
 class Price{
+    #[Groups(["list", "details"])]
     private float $amount;
+    #[Groups(["list", "details"])]
     private Currency $currency;
 
     public function getAmount(): float{

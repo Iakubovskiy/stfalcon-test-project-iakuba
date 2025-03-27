@@ -8,6 +8,7 @@ use App\Types\Price;
 use App\Types\PropertyLocation;
 use App\Types\PropertySize;
 use Doctrine\ORM\Mapping as ORM;
+use JMS\Serializer\Annotation\Groups;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
@@ -18,27 +19,34 @@ class Property
     #[ORM\Column(type: UuidType::NAME, unique: true)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
+    #[Groups(["list", "details"])]
     private ?Uuid $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(["list", "details"])]
     private ?string $description = null;
 
     #[ORM\Column]
+    #[Groups(["list", "details"])]
     private ?Price $price = null;
 
     #[ORM\Column]
+    #[Groups(["list", "details"])]
     private ?PropertySize $size = null;
 
     #[ORM\Column]
+    #[Groups(["list", "details"])]
     private ?PropertyLocation $location = null;
 
     #[ORM\ManyToOne(targetEntity: Agent::class, inversedBy: 'properties')]
     private Agent $agent;
 
     #[ORM\ManyToOne(targetEntity: PropertyStatus::class, inversedBy: 'properties')]
+    #[Groups(["list", "details"])]
     private PropertyStatus $status;
 
     #[ORM\ManyToOne(targetEntity: PropertyType::class, inversedBy: 'properties')]
+    #[Groups(["list", "details"])]
     private PropertyType $type;
 
     public function getId(): ?Uuid
