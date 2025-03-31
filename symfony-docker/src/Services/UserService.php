@@ -28,7 +28,6 @@ class UserService
 
         $user = match ($registerDto->role) {
             "ROLE_AGENT" => new Agent(),
-            'ROLE_ADMIN' => new Admin(),
             'ROLE_CUSTOMER' => new Customer(),
             default => throw new \Exception('invalid role'),
         };
