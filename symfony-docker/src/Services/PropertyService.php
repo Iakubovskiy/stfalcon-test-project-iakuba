@@ -3,31 +3,42 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\DTO\PropertyCreateDto;
+use App\DTO\PropertyUpdateDto;
 use App\Entity\Agent;
-use App\Entity\Currency;
+use App\Entity\Coordinates;
+use App\Entity\Price;
 use App\Entity\Property;
-use App\Entity\PropertyType;
+use App\Entity\PropertyLocation;
+use App\Entity\PropertySize;
 use App\Entity\PropertyStatus;
-use App\Types\Coordinates;
-use App\Types\Price;
-use App\Types\PropertyLocation;
-use App\Types\PropertySize;
+use App\Entity\PropertyType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityNotFoundException;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Component\Uid\Uuid;
 
 class PropertyService
 {
-    private EntityManagerInterface $entityManager;
+    public function __construct(private EntityManagerInterface $entityManager)
+    {}
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function getAllProperties(int $offset, int $limit): array
     {
-        $this->entityManager = $entityManager;
-    }
+        $query = $this->entityManager->createQueryBuilder()
+            ->select('p')
+            ->from(Property::class, 'p')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery();
 
-    public function getAllProperties(): array
-    {
-        return $this->entityManager->getRepository(Property::class)->findAll();
+        $paginator = new Paginator($query);
+        return [
+            'result' => iterator_to_array($paginator),
+            'total' => $paginator->count(),
+            'offset' => $offset,
+            'limit' => $limit,
+        ];
     }
 
     public function getProperty(Uuid $propertyId): ?Property
@@ -39,15 +50,25 @@ class PropertyService
         }
     }
 
-    public function getAllPropertiesForUser(array $notVisibleStatuses):array
+    public function getAllPropertiesForUsers(array $visibleStatuses,int $offset, int $limit):array
     {
         try {
-            return $this->entityManager->getRepository(Property::class)
-               ->createQueryBuilder('p')
-                ->where('p.status NOT IN (:statuses)')
-                ->setParameter('statuses', $notVisibleStatuses)
-                ->getQuery()
-                ->getResult();
+            $query = $this->entityManager->createQueryBuilder()
+                ->select('p')
+                ->from(Property::class, 'p')
+                ->where('p.status IN (:statuses)')
+                ->setParameter('statuses', $visibleStatuses)
+                ->setFirstResult($offset)
+                ->setMaxResults($limit)
+                ->getQuery();
+
+            $paginator = new Paginator($query);
+            return [
+                'result' => iterator_to_array($paginator),
+                'total' => $paginator->count(),
+                'offset' => $offset,
+                'limit' => $limit,
+            ];
         } catch (EntityNotFoundException $exception) {
             return [];
         }
@@ -57,45 +78,35 @@ class PropertyService
     {
         try {
             $agent = $this->entityManager->getRepository(Agent::class)->find($agentId);
-            return $agent->getProperties();
+            return iterator_to_array($agent->getProperties());
         } catch (EntityNotFoundException $exception) {
             return [];
         }
     }
 
     public function createProperty(
-        Uuid $agentId,
-        string $propertyTypeId,
-        float $priceAmount,
-        string $priceCurrencyId,
-        string $address,
-        float $latitude,
-        float $longitude,
-        float $area,
-        string $measurement,
-        string $description,
+        PropertyCreateDto $propertyCreateDto,
     ): Property
     {
         try {
             $property = new Property();
-            $agent = $this->entityManager->getRepository(Agent::class)->find($agentId);
-            $type = $this->entityManager->getRepository(PropertyType::class)->find($propertyTypeId);
+            $agent = $this->entityManager->getRepository(Agent::class)->find($propertyCreateDto->agentId);
+            $type = $this->entityManager->getRepository(PropertyType::class)->find($propertyCreateDto->propertyTypeId);
             $price = new Price();
             $location = new PropertyLocation();
             $size = new PropertySize();
 
-            $price->setAmount($priceAmount);
-            $priceCurrency = $this->entityManager->getRepository(Currency::class)->find($priceCurrencyId);
-            $price->setCurrency($priceCurrency);
+            $price->setAmount($propertyCreateDto->priceAmount);
+            $price->setCurrency($propertyCreateDto->priceCurrencyId);
 
             $coordinates = new Coordinates();
-            $coordinates->setLatitude($latitude);
-            $coordinates->setLongitude($longitude);
-            $location->setAddress($address);
+            $coordinates->setLatitude($propertyCreateDto->latitude);
+            $coordinates->setLongitude($propertyCreateDto->longitude);
+            $location->setAddress($propertyCreateDto->address);
             $location->setCoordinates($coordinates);
 
-            $size->setValue($area);
-            $size->setMeasurement($measurement);
+            $size->setValue($propertyCreateDto->area);
+            $size->setMeasurement($propertyCreateDto->measurement);
 
             $status = $this->entityManager->getRepository(PropertyStatus::class)->find('draft');
 
@@ -104,7 +115,7 @@ class PropertyService
             $property->setPrice($price);
             $property->setLocation($location);
             $property->setSize($size);
-            $property->setDescription($description);
+            $property->setDescription($propertyCreateDto->description);
             $property->setStatus($status);
 
             $this->entityManager->persist($property);
@@ -115,49 +126,37 @@ class PropertyService
         }
     }
 
-    public function updateProperty(
-        Uuid $propertyId,
-        ?string $propertyTypeId,
-        ?float $priceAmount,
-        ?string $priceCurrencyId,
-        ?string $address,
-        ?float $latitude,
-        ?float $longitude,
-        ?float $area,
-        ?string $measurement,
-        ?string $description,
-    ) : Property
+    public function updateProperty(Uuid $propertyId, PropertyUpdateDto $propertyUpdateDto) : Property
     {
         try {
             $property = $this->entityManager->getRepository(Property::class)->find($propertyId);
-            if ($propertyTypeId) {
-                $type = $this->entityManager->getRepository(PropertyType::class)->find($propertyTypeId);
+            if ($propertyUpdateDto->propertyTypeId) {
+                $type = $this->entityManager->getRepository(PropertyType::class)->find($propertyUpdateDto->propertyTypeId);
                 $property->setType($type);
             }
-            if ($priceAmount) {
-                $property->getPrice()->setAmount($priceAmount);
+            if ($propertyUpdateDto->priceAmount) {
+                $property->getPrice()->setAmount($propertyUpdateDto->priceAmount);
             }
-            if($priceCurrencyId){
-                $priceCurrency = $this->entityManager->getRepository(Currency::class)->find($priceCurrencyId);
-                $property->getPrice()->setCurrency($priceCurrency);
+            if($propertyUpdateDto->priceCurrencyId){
+                $property->getPrice()->setCurrency($propertyUpdateDto->priceCurrencyId);
             }
-            if($address){
-                $property->getLocation()->setAddress($address);
+            if($propertyUpdateDto->address){
+                $property->getLocation()->setAddress($propertyUpdateDto->address);
             }
-            if($latitude){
-                $property->getLocation()->getCoordinates()->setLatitude($latitude);
+            if($propertyUpdateDto->latitude){
+                $property->getLocation()->getCoordinates()->setLatitude($propertyUpdateDto->latitude);
             }
-            if($longitude){
-                $property->getLocation()->getCoordinates()->setLongitude($longitude);
+            if($propertyUpdateDto->longitude){
+                $property->getLocation()->getCoordinates()->setLongitude($propertyUpdateDto->longitude);
             }
-            if($area){
-                $property->getSize()->setValue($area);
+            if($propertyUpdateDto->area){
+                $property->getSize()->setValue($propertyUpdateDto->area);
             }
-            if($measurement){
-                $property->getSize()->setMeasurement($measurement);
+            if($propertyUpdateDto->measurement){
+                $property->getSize()->setMeasurement($propertyUpdateDto->measurement);
             }
-            if($description) {
-                $property->setDescription($description);
+            if($propertyUpdateDto->description) {
+                $property->setDescription($propertyUpdateDto->description);
             }
             $this->entityManager->persist($property);
             $this->entityManager->flush();
@@ -179,7 +178,7 @@ class PropertyService
         }
     }
 
-    public function changePropertyStatus(string $propertyId, string $statusId): Property
+    public function changePropertyStatus(Uuid $propertyId, string $statusId): Property
     {
         try {
             $property = $this->entityManager->getRepository(Property::class)->find($propertyId);

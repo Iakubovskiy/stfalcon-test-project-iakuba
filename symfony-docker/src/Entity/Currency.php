@@ -5,18 +5,15 @@ namespace App\Entity;
 
 use App\Repository\CurrencyRepository;
 use Doctrine\ORM\Mapping as ORM;
-use JMS\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: CurrencyRepository::class)]
 class Currency
 {
     #[ORM\Id]
     #[ORM\Column]
-    #[Groups(["list", "details"])]
     private ?string $id = null;
 
     #[ORM\Column(length: 5)]
-    #[Groups(["list", "details"])]
     private ?string $name = null;
 
     public function getId(): ?string

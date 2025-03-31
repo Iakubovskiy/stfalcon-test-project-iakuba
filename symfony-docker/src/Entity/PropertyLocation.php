@@ -1,15 +1,16 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Types;
+namespace App\Entity;
 
-use JMS\Serializer\Annotation\Groups;
+use Doctrine\ORM\Mapping as ORM;
 
+#[ORM\Embeddable]
 class PropertyLocation
 {
-    #[Groups(["list", "details"])]
+    #[ORM\Column(type: 'string')]
     private string $address;
-    #[Groups(["list", "details"])]
+    #[ORM\Embedded(class: Coordinates::class)]
     private Coordinates $coordinates;
 
     public function getAddress(): string

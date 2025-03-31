@@ -1,14 +1,15 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Types;
+namespace App\Entity;
 
-use JMS\Serializer\Annotation\Groups;
+use Doctrine\ORM\Mapping as ORM;
 
+#[ORM\Embeddable]
 class PropertySize{
-    #[Groups(["list", "details"])]
+    #[ORM\Column(type:'float')]
     private float $value;
-    #[Groups(["list", "details"])]
+    #[ORM\Column(type:'string')]
     private string $measurement;
 
     public function getValue(): float{

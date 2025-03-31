@@ -3,41 +3,40 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\DTO\RegisterDto;
+use App\DTO\UpdateProfileDto;
 use App\Entity\Admin;
 use App\Entity\Agent;
 use App\Entity\Customer;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Uid\Uuid;
 
 class UserService
 {
-    private EntityManagerInterface $em;
-    private UserPasswordHasherInterface $passwordHarsher;
 
-    public function __construct(EntityManagerInterface $em, UserPasswordHasherInterface $passwordHarsher) {
-        $this->em = $em;
-        $this->passwordHarsher = $passwordHarsher;
-    }
+    public function __construct(private EntityManagerInterface $em, private UserPasswordHasherInterface $passwordHarsher)
+    {}
 
-    public function register(string $email, string $password, string $role, string $name, string $phone): User {
-        $existingUser = $this->em->getRepository(User::class)->findOneBy(["email"=> $email]);
+    public function register(RegisterDto $registerDto): User {
+        $existingUser = $this->em->getRepository(User::class)->findOneBy(["email"=> $registerDto->email]);
         if($existingUser) {
-            throw new \Exception("This email is already used");
+            return new Customer();
         }
 
-        $user = match ($role) {
+        $user = match ($registerDto->role) {
             "ROLE_AGENT" => new Agent(),
             'ROLE_ADMIN' => new Admin(),
             'ROLE_CUSTOMER' => new Customer(),
             default => throw new \Exception('invalid role'),
         };
-        $user->setName($name);
-        $user->setEmail($email);
-        $hashed_password = $this->passwordHarsher->hashPassword($user, $password);
+        $user->setName($registerDto->name);
+        $user->setEmail($registerDto->email);
+        $hashed_password = $this->passwordHarsher->hashPassword($user, $registerDto->password);
         $user->setPassword($hashed_password);
-        $user->setPhone($phone);
+        $user->setPhone($registerDto->phone);
         $user->setIsBlocked(false);
 
         $this->em->persist($user);
@@ -54,7 +53,7 @@ class UserService
         $this->em->flush();
     }
 
-    public function unBlockUser(Uuid $userId): void
+    public function unblockUser(Uuid $userId): void
     {
         $user = $this->em->getRepository(User::class)->find($userId);
         $user->setIsBlocked(false);
@@ -62,24 +61,45 @@ class UserService
         $this->em->flush();
     }
 
-    public function updateProfile(Uuid $userId, string $email, string $password, string $name, string $phone): User {
+    public function updateProfile(Uuid $userId, UpdateProfileDto $newUser): User {
         $existingUser = $this->em->getRepository(User::class)->find($userId);
-
-        $existingUser->setName($name);
-        $existingUser->setEmail($email);
-        $hashed_password = $this->passwordHarsher->hashPassword($existingUser, $password);
-        $existingUser->setPassword($hashed_password);
-        $existingUser->setPhone($phone);
-        $existingUser->setIsBlocked(false);
-
+        if ($newUser->name)
+            $existingUser->setName($newUser->name);
+        if ($newUser->email)
+            $existingUser->setEmail($newUser->email);
+        if ($newUser->password) {
+            $hashed_password = $this->passwordHarsher->hashPassword($existingUser, $newUser->password);
+            $existingUser->setPassword($hashed_password);
+        }
+        if ($newUser->phone) {
+            $existingUser->setPhone($newUser->phone);
+        }
         $this->em->persist($existingUser);
         $this->em->flush();
 
         return $existingUser;
     }
 
-    public function getAllUsers(): array
+    public function getAllUsers(int $offset, int $limit): array
     {
-        return $this->em->getRepository(User::class)->findAll();
+        $query = $this->em->createQueryBuilder()
+            ->select('u')
+            ->from(User::class, 'u')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery();
+
+        $paginator = new Paginator($query);
+        return [
+            'result' => iterator_to_array($paginator),
+            'total' => $paginator->count(),
+            'offset' => $offset,
+            'limit' => $limit,
+        ];
+    }
+
+    public function getUserById(Uuid $userId): User
+    {
+        return $this->em->getRepository(User::class)->find($userId);
     }
 }

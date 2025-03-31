@@ -4,11 +4,8 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use App\Repository\AgentRepository;
-use App\Types\PropertyLocation;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Types\UuidType;
-use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: AgentRepository::class)]
 class Agent extends User

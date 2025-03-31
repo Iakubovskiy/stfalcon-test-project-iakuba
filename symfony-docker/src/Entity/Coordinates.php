@@ -1,15 +1,16 @@
 <?php
 declare(strict_types=1);
 
-namespace App\Types;
+namespace App\Entity;
 
-use JMS\Serializer\Annotation\Groups;
+use Doctrine\ORM\Mapping as ORM;
 
+#[ORM\Embeddable]
 class Coordinates
 {
-    #[Groups(["list", "details"])]
+    #[ORM\Column(type:'float')]
     private float $latitude;
-    #[Groups(["list", "details"])]
+    #[ORM\Column(type:'float')]
     private float $longitude;
 
     public function getLatitude(): float{

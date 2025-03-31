@@ -8,11 +8,9 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class CurrencyService
 {
-    private EntityManagerInterface $entityManager;
-    public function __construct(EntityManagerInterface $entityManager)
-    {
-        $this->entityManager = $entityManager;
-    }
+
+    public function __construct(private EntityManagerInterface $entityManager)
+    {}
 
     public function getCurrencies(): array
     {
@@ -53,7 +51,7 @@ class CurrencyService
 
     }
 
-    public function coverCurrency(string $currency_from_id, string $currency_to_id, float $amount): float
+    public function convertCurrency(string $currency_from_id, string $currency_to_id, float $amount): float
     {
         if ($currency_from_id === $currency_to_id) {
             return $amount;

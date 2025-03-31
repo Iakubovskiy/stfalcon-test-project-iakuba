@@ -5,18 +5,15 @@ namespace App\Entity;
 use App\Repository\PropertyTypeRepository;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use JMS\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: PropertyTypeRepository::class)]
 class PropertyType
 {
     #[ORM\Id]
     #[ORM\Column]
-    #[Groups(["list", "details"])]
     private ?string $id = null;
 
     #[ORM\Column(length: 50)]
-    #[Groups(["list", "details"])]
     private ?string $name = null;
 
     #[ORM\OneToMany(targetEntity: Property::class, mappedBy: 'type')]
