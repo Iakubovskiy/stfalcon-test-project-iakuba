@@ -5,7 +5,7 @@ namespace App\Services;
 
 use App\DTO\RegisterDto;
 use App\DTO\UpdateProfileDto;
-use App\Entity\Admin;
+use App\Entity\Property;
 use App\Entity\Agent;
 use App\Entity\Customer;
 use App\Entity\User;
@@ -100,5 +100,25 @@ class UserService
     public function getUserById(Uuid $userId): User
     {
         return $this->em->getRepository(User::class)->find($userId);
+    }
+
+    public function addFavorite(Uuid $userId, Uuid $propertyId): Customer
+    {
+        $customer = $this->em->getRepository(Customer::class)->find($userId);
+        $property = $this->em->getRepository(Property::class)->find($propertyId);
+        $customer->addFavoriteProperty($property);
+        $this->em->persist($customer);
+        $this->em->flush();
+        return $customer;
+    }
+
+    public function removeFavorite(Uuid $userId, Uuid $propertyId): Customer
+    {
+        $customer = $this->em->getRepository(Customer::class)->find($userId);
+        $property = $this->em->getRepository(Property::class)->find($propertyId);
+        $customer->removeFavoriteProperty($property);
+        $this->em->persist($customer);
+        $this->em->flush();
+        return $customer;
     }
 }

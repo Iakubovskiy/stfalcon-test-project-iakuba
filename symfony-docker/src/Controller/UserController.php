@@ -3,9 +3,11 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\DTO\FavoriteIdDTO;
 use App\DTO\PaginatedListDTO;
 use App\DTO\RegisterDto;
 use App\DTO\UpdateProfileDto;
+use App\Entity\Customer;
 use App\Presenters\UserPresenter;
 use App\Services\UserService;
 use Nelmio\ApiDocBundle\Attribute\Model;
@@ -332,6 +334,213 @@ final class UserController extends AbstractController
             $this->userPresenter->present($this->userService->updateProfile($id, $newUser)),
             Response::HTTP_OK,
             []
+        );
+    }
+
+    #[Route("/api/user/add-favorite/{id}", name: "api_add_user_favorite", methods: ["PATCH"])]
+    #[OA\Patch(
+        path: "/api/user/add-favorite/{id}",
+        description: "Adds a property, identified by its ID in the request body, to the specified user's list of favorite properties.",
+        summary: "Add property to user's favorites",
+        requestBody: new OA\RequestBody(
+            description: "JSON object containing the ID of the property to add.",
+            required: true,
+            content: new OA\JsonContent(
+                ref: new Model(type: FavoriteIdDTO::class)
+            )
+        ),
+        tags: ["User Favorites"],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                description: 'The UUID of the user whose favorites are being modified',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'string', format: 'uuid', example: 'f47ac10b-58cc-4372-a567-0e02b2c3d479')
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Property successfully added to favorites. Returns the updated user profile.",
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: "id", type: "string", format:"uuid"),
+                        new OA\Property(property: "email", type: "string", format:"email"),
+                        new OA\Property(property: "name", type: "string"),
+                        new OA\Property(property: "phone", type: "string"),
+                        new OA\Property(
+                            property: "favoriteProperties",
+                            description: "List of IDs of the user's favorite properties",
+                            type: "array",
+                            items: new OA\Items(type: "string", format: "uuid")
+                        ),
+                    ],
+                    type: "object",
+                )
+            ),
+            new OA\Response(
+                response: 400,
+                description: "Bad Request - Invalid UUID format or missing/invalid data in request body."
+            ),
+            new OA\Response(
+                response: 404,
+                description: "Not Found - User or Property with the specified ID does not exist."
+            ),
+            new OA\Response(
+                response: 401,
+                description: "Unauthorized - Authentication required."
+            ),
+        ]
+    )]
+    public function addCustomersFavorites(Uuid $id, #[MapRequestPayload] FavoriteIdDTO $favoriteDto): JsonResponse
+    {
+        return new JsonResponse(
+            $this->userPresenter->presentCustomer($this->userService->addFavorite($id, $favoriteDto->propertyId)),
+            Response::HTTP_OK,
+            [],
+        );
+    }
+
+    #[Route("/api/user/remove-favorite/{id}", name: "api_remove_user_favorite", methods: ["PATCH"])]
+    #[OA\Patch(
+        path: "/api/user/remove-favorite/{id}",
+        description: "Removes a property, identified by its ID in the request body, from the specified user's list of favorite properties.",
+        summary: "Remove property from user's favorites",
+        requestBody: new OA\RequestBody(
+            description: "JSON object containing the ID of the property to remove.",
+            required: true,
+            content: new OA\JsonContent(
+                ref: new Model(type: FavoriteIdDTO::class)
+            )
+        ),
+        tags: ["User Favorites"],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                description: 'The UUID of the user whose favorites are being modified',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'string', format: 'uuid', example: 'f47ac10b-58cc-4372-a567-0e02b2c3d479')
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "Property successfully removed from favorites. Returns the updated user profile.",
+                content: new OA\JsonContent(
+                // Та сама структура відповіді, що й при додаванні
+                    properties: [
+                        new OA\Property(property: "id", type: "string", format:"uuid"),
+                        new OA\Property(property: "email", type: "string", format:"email"),
+                        new OA\Property(property: "name", type: "string"),
+                        new OA\Property(property: "phone", type: "string"),
+                        new OA\Property(
+                            property: "favoriteProperties",
+                            description: "List of IDs of the user's favorite properties",
+                            type: "array",
+                            items: new OA\Items(type: "string", format: "uuid")
+                        ),
+                    ],
+                    type: "object",
+                )
+            ),
+            new OA\Response(
+                response: 400,
+                description: "Bad Request - Invalid UUID format or missing/invalid data in request body."
+            ),
+            new OA\Response(
+                response: 404,
+                description: "Not Found - User or Property not found, or property was not in the user's favorites."
+            ),
+            new OA\Response(
+                response: 401,
+                description: "Unauthorized - Authentication required."
+            ),
+        ]
+    )]
+    public function removeCustomersFavorites(Uuid $id, #[MapRequestPayload] FavoriteIdDTO $favoriteDto): JsonResponse
+    {
+        return new JsonResponse(
+            $this->userPresenter->presentCustomer($this->userService->removeFavorite($id, $favoriteDto->propertyId)),
+            Response::HTTP_OK,
+            [],
+        );
+    }
+
+    #[Route("/api/user/{id}", name: "api_user_details", methods: ["GET"])]
+    #[OA\Get(
+        path: "/api/user/{id}",
+        description: "Retrieves the profile information for a specific user (Customer, Admin, or Agent) based on their UUID. The exact structure might slightly vary based on the user type (e.g., Customer vs. others).",
+        summary: "Get user details by ID",
+        tags: ["Users"],
+        parameters: [
+            new OA\Parameter(
+                name: 'id',
+                description: 'The UUID of the user to retrieve',
+                in: 'path',
+                required: true,
+                schema: new OA\Schema(type: 'string', format: 'uuid', example: 'f47ac10b-58cc-4372-a567-0e02b2c3d479')
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: "User details retrieved successfully.",
+                content: new OA\JsonContent(
+                    description: "User profile data. May include specific fields depending on the user type (e.g., Customer).",
+                    properties: [
+                        new OA\Property(property: "id", type: "string", format:"uuid"),
+                        new OA\Property(property: "role", description: "User role", type: "string", enum: ["ROLE_ADMIN", "ROLE_AGENT", "ROLE_CUSTOMER"]),
+                        new OA\Property(property: "email", type: "string", format:"email"),
+                        new OA\Property(property: "name", type: "string"),
+                        new OA\Property(property: "phone", type: "string", nullable: true),
+                        new OA\Property(
+                            property: "favoriteProperties",
+                            description: "List of favorite property IDs (typically for Customers)",
+                            type: "array",
+                            items: new OA\Items(type: "string", format: "uuid"),
+                            nullable: true
+                        ),
+                    ],
+                    type: "object",
+                    example: [
+                        "id" => "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+                        "role" => "ROLE_CUSTOMER",
+                        "email" => "customer@example.com",
+                        "name" => "John Doe",
+                        "phone" => "+1234567890",
+                        "favoriteProperties" => [
+                            "prop-uuid-1",
+                            "prop-uuid-2"
+                        ]
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 404,
+                description: "Not Found - User with the specified ID was not found or the provided ID format is invalid."
+            ),
+            new OA\Response(
+                response: 401,
+                description: "Unauthorized - Authentication token missing or invalid."
+            ),
+        ]
+    )]
+    public function getUserDetails(Uuid $id):JsonResponse
+    {
+        $user = $this->userService->getUserById($id);
+        if($user instanceof Customer) {
+            return new JsonResponse(
+                $this->userPresenter->presentCustomer($user),
+                Response::HTTP_OK,
+                []
+            );
+        }
+        return new JsonResponse(
+            $this->userPresenter->present($user),
+            Response::HTTP_OK,
+            [],
         );
     }
 }
