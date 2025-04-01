@@ -38,6 +38,9 @@ class Property
     #[ORM\ManyToOne(targetEntity: PropertyType::class, inversedBy: 'properties')]
     private PropertyType $type;
 
+    #[ORM\Column]
+    private ?array $photoUrls = [];
+
     public function getId(): ?Uuid
     {
         return $this->id;
@@ -118,6 +121,30 @@ class Property
     public function setType(PropertyType $type): static
     {
         $this->type = $type;
+        return $this;
+    }
+
+    public function getPhotoUrls(): ?array
+    {
+        return $this->photoUrls;
+    }
+
+    public function setPhotoUrls(array $photoUrls): self
+    {
+        $this->photoUrls = $photoUrls;
+        return $this;
+    }
+
+    public function addPhotoUrl(string $photoUrl): self
+    {
+        $this->photoUrls[] = $photoUrl;
+        return $this;
+    }
+
+    public function removePhotoUrl(string $photoUrl): self
+    {
+        $index = array_search($photoUrl, $this->photoUrls);
+        unset($this->photoUrls[$index]);
         return $this;
     }
 }

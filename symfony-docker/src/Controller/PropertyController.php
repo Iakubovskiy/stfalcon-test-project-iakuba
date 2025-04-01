@@ -13,6 +13,7 @@ use App\Presenters\PropertyPresenter;
 use App\Services\PropertyService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Annotation\Route;
@@ -394,7 +395,6 @@ class PropertyController extends AbstractController
         #[MapRequestPayload] PropertyCreateDto $propertyCreateDto,
     ): JsonResponse
     {
-
        return new JsonResponse(
            $this->propertyPresenter->present($this->propertyService->createProperty($propertyCreateDto)),
            Response::HTTP_CREATED,
@@ -517,6 +517,20 @@ class PropertyController extends AbstractController
             $this->propertyPresenter->present($this->propertyService->changePropertyStatus($id, $changeStatusDTO->statusId)),
             Response::HTTP_OK,
             []
+        );
+    }
+
+    #[Route('api/property/update-photos/{id}', name: 'property_update_photos', methods: ['POST'])]
+    public function propertyUpdatePhotos(
+        Request $request,
+        Uuid $id,
+    ):JsonResponse
+    {
+        $images = $request->files->get('images');
+        return new JsonResponse(
+            $this->propertyPresenter->present($this->propertyService->updatePropertyPhotos($id, $images)),
+            Response::HTTP_OK,
+            [],
         );
     }
 }

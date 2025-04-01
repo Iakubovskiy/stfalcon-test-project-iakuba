@@ -13,6 +13,7 @@ use App\Entity\PropertyLocation;
 use App\Entity\PropertySize;
 use App\Entity\PropertyStatus;
 use App\Entity\PropertyType;
+use App\Services\S3\S3Service;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityNotFoundException;
 use Doctrine\ORM\Tools\Pagination\Paginator;
@@ -20,7 +21,10 @@ use Symfony\Component\Uid\Uuid;
 
 class PropertyService
 {
-    public function __construct(private EntityManagerInterface $entityManager)
+    public function __construct(
+        private readonly EntityManagerInterface $entityManager,
+        private readonly S3Service $s3Service,
+    )
     {}
 
     public function getAllProperties(int $offset, int $limit): array
@@ -118,6 +122,11 @@ class PropertyService
             $property->setDescription($propertyCreateDto->description);
             $property->setStatus($status);
 
+            if($propertyCreateDto->images) {
+                $photoUrls = $this->s3Service->saveFileArray($propertyCreateDto->images);
+                $property->setPhotoUrls($photoUrls);
+            }
+
             $this->entityManager->persist($property);
             $this->entityManager->flush();
             return $property;
@@ -189,6 +198,22 @@ class PropertyService
             return $property;
         } catch (\Exception $e){
             throw new \Exception($e->getMessage());
+        }
+    }
+
+    public function updatePropertyPhotos(Uuid $propertyId, array $images) : Property
+    {
+        try {
+            $property = $this->entityManager->getRepository(Property::class)->find($propertyId);
+            if($images) {
+                $photoUrls = $this->s3Service->saveFileArray($images);
+                $property->setPhotoUrls($photoUrls);
+            }
+            $this->entityManager->persist($property);
+            $this->entityManager->flush();
+            return $property;
+        } catch (\Exception $exception) {
+            throw new \Exception($exception->getMessage());
         }
     }
 }

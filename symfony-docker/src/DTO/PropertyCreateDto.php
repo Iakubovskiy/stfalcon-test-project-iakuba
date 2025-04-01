@@ -44,6 +44,8 @@ class PropertyCreateDto
         #[Assert\NotBlank]
         #[Assert\Length(min: 1, max: 200)]
         public readonly string $description,
+
+        public readonly ?array $images = null,
     ) {
     }
 }

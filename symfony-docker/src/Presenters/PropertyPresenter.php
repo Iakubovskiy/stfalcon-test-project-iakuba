@@ -28,7 +28,7 @@ final readonly class PropertyPresenter
             'size' => $this->sizePresenter->present($property->getSize()),
             'description' => $property->getDescription(),
             'status' => $this->statusPresenter->present($property->getStatus()),
-
+            'images' => $property->getPhotoUrls(),
         ];
     }
 
