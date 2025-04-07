@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace App\Commands;
 
 use App\Entity\Admin;
+use App\Services\AdminService;
 use Doctrine\ORM\EntityManagerInterface;
+use phpDocumentor\Reflection\File;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -25,7 +26,7 @@ class CreateAdminCommand extends Command
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
-        private readonly UserPasswordHasherInterface $passwordHarsher,
+        private readonly AdminService $adminService,
         private readonly ValidatorInterface $validator,
     )
     {
@@ -97,23 +98,12 @@ class CreateAdminCommand extends Command
         $password = $helper->ask($input,$output,$passwordQuestion);
         $phone = $helper->ask($input, $output, $phoneQuestion);
 
-        $user = new Admin();
-
-        $user->setName($name);
-        $user->setEmail($email);
-        $hashed_password = $this->passwordHarsher->hashPassword($user, $password);
-        $user->setPassword($hashed_password);
-        $user->setPhone($phone);
-        $user->setIsBlocked(false);
-
-        $this->entityManager->persist($user);
-        $this->entityManager->flush();
+        $this->adminService->createAdmin($name, $email, $password, $phone);
 
         $output->writeln('<info>Admin user successfully generated!</info>');
         $output->writeln([
             'Email: ' . $email,
             'Name: ' . $name,
-            // Не виводьте пароль!
             'Phone: ' . $phone,
         ]);
         return Command::SUCCESS;

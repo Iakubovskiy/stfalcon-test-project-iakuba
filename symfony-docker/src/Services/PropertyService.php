@@ -10,6 +10,7 @@ use App\Entity\Price;
 use App\Entity\Property;
 use App\Entity\PropertyLocation;
 use App\Entity\PropertySize;
+use App\Entity\PropertyStatus;
 use App\Repository\AgentRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\PropertyStatusRepository;
@@ -35,20 +36,7 @@ readonly class PropertyService
 
     public function getAllProperties(int $offset, int $limit): array
     {
-        $query = $this->entityManager->createQueryBuilder()
-            ->select('p')
-            ->from(Property::class, 'p')
-            ->setFirstResult($offset)
-            ->setMaxResults($limit)
-            ->getQuery();
-
-        $paginator = new Paginator($query);
-        return [
-            'result' => iterator_to_array($paginator),
-            'total' => $paginator->count(),
-            'offset' => $offset,
-            'limit' => $limit,
-        ];
+        return $this->propertyRepository->getAllProperties($offset, $limit);
     }
 
     public function getProperty(Uuid $propertyId): ?Property
@@ -62,22 +50,11 @@ readonly class PropertyService
 
     public function getAllPropertiesForUsers(array $visibleStatuses,int $offset, int $limit):array
     {
-        $query = $this->entityManager->createQueryBuilder()
-            ->select('p')
-            ->from(Property::class, 'p')
-            ->where('p.status IN (:statuses)')
-            ->setParameter('statuses', $visibleStatuses)
-            ->setFirstResult($offset)
-            ->setMaxResults($limit)
-            ->getQuery();
-
-        $paginator = new Paginator($query);
-        return [
-            'result' => iterator_to_array($paginator),
-            'total' => $paginator->count(),
-            'offset' => $offset,
-            'limit' => $limit,
-        ];
+        $visibleStatuses = array_map(fn (string $statusId) =>
+            $this->propertyStatusRepository->find(Uuid::fromString($statusId)),
+            $visibleStatuses,
+        );
+        return $this->propertyRepository->getAllPropertiesForUsers($visibleStatuses,$offset,$limit);
     }
 
     public function getAgentProperty(Uuid $agentId): array

@@ -13,7 +13,7 @@ class LoginAction extends AbstractController
 {
     #[Route("/api/auth/login", name: "api_login", methods: ["POST"])]
     #[OA\Post(
-        path: "/api/login",
+        path: "/api/auth/login",
         description: "JWT Authentication",
         summary: "Login for user",
         security: [],

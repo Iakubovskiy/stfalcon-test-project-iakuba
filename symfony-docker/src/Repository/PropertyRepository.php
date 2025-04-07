@@ -5,6 +5,8 @@ namespace App\Repository;
 
 use App\Entity\Property;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -12,7 +14,10 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class PropertyRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    public function __construct(
+        ManagerRegistry $registry,
+        private readonly EntityManagerInterface $entityManager
+    )
     {
         parent::__construct($registry, Property::class);
     }
@@ -41,4 +46,44 @@ class PropertyRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
+
+    public function getAllPropertiesForUsers(array $visibleStatuses,int $offset, int $limit):array
+    {
+        $query = $this->entityManager->createQueryBuilder()
+            ->select('p')
+            ->from(Property::class, 'p')
+            ->where('p.status IN (:statuses)')
+            ->setParameter('statuses', $visibleStatuses)
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery();
+
+        $paginator = new Paginator($query);
+        return [
+            'result' => iterator_to_array($paginator),
+            'total' => $paginator->count(),
+            'offset' => $offset,
+            'limit' => $limit,
+        ];
+    }
+
+    public function getAllProperties(int $offset, int $limit): array
+    {
+        $query = $this->entityManager->createQueryBuilder()
+            ->select('p')
+            ->from(Property::class, 'p')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery();
+
+        $paginator = new Paginator($query);
+        return [
+            'result' => iterator_to_array($paginator),
+            'total' => $paginator->count(),
+            'offset' => $offset,
+            'limit' => $limit,
+        ];
+    }
+
+
 }

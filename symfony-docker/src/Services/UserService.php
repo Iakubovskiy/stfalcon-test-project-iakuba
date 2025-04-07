@@ -5,42 +5,41 @@ namespace App\Services;
 
 use App\DTO\RegisterDto;
 use App\DTO\UpdateProfileDto;
-use App\Entity\Property;
 use App\Entity\Agent;
 use App\Entity\Customer;
 use App\Entity\User;
 use App\Enum\Role;
-use App\Repository\AgentRepository;
 use App\Repository\CustomerRepository;
 use App\Repository\PropertyRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Tools\Pagination\Paginator;
+use Exception;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Uid\Uuid;
 
-class UserService
+readonly class UserService
 {
 
     public function __construct(
-        private readonly UserRepository $userRepository,
-        private readonly CustomerRepository $customerRepository,
-        private readonly PropertyRepository $propertyRepository,
-        private readonly UserPasswordHasherInterface $passwordHarsher,
-        private readonly EntityManagerInterface $em,
+        private UserRepository $userRepository,
+        private CustomerRepository $customerRepository,
+        private PropertyRepository $propertyRepository,
+        private UserPasswordHasherInterface $passwordHarsher,
+        private EntityManagerInterface $em,
     )
     {}
 
     public function register(RegisterDto $registerDto): User {
         $existingUser = $this->userRepository->findOneBy(["email"=> $registerDto->email]);
         if($existingUser) {
-            return new Customer();
+            throw new ConflictHttpException('Користувач з таким email вже існує.');
         }
 
         $user = match ($registerDto->role) {
             Role::AGENT->value => new Agent(),
             Role::CUSTOMER->value => new Customer(),
-            default => throw new \Exception('invalid role'),
+            default => throw new Exception('invalid role'),
         };
         $user->setName($registerDto->name);
         $user->setEmail($registerDto->email);
@@ -92,20 +91,7 @@ class UserService
 
     public function getAllUsers(int $offset, int $limit): array
     {
-        $query = $this->em->createQueryBuilder()
-            ->select('u')
-            ->from(User::class, 'u')
-            ->setFirstResult($offset)
-            ->setMaxResults($limit)
-            ->getQuery();
-
-        $paginator = new Paginator($query);
-        return [
-            'result' => iterator_to_array($paginator),
-            'total' => $paginator->count(),
-            'offset' => $offset,
-            'limit' => $limit,
-        ];
+       return $this->userRepository->getAllUsers($offset, $limit);
     }
 
     public function getUserById(Uuid $userId): User

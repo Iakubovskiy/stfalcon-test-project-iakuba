@@ -13,6 +13,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 
 class RegisterAction extends AbstractController
@@ -63,11 +64,14 @@ class RegisterAction extends AbstractController
         #[MapRequestPayload] RegisterDto $registerDto,
     ): JsonResponse
     {
-        $newUser = $this->userService->register($registerDto);
-        if(!$newUser->getEmail())
-        {
-            return new JsonResponse(['message'=>'user already exists'], Response::HTTP_CONFLICT, []);
+        try {
+            $newUser = $this->userService->register($registerDto);
+            return new JsonResponse($this->userPresenter->present($newUser), Response::HTTP_CREATED, []);
+        }catch (ConflictHttpException $e) {
+            return new JsonResponse([
+                'error' => $e->getMessage(),
+            ], JsonResponse::HTTP_CONFLICT);
+
         }
-        return new JsonResponse($this->userPresenter->present($newUser), Response::HTTP_CREATED, []);
     }
 }
