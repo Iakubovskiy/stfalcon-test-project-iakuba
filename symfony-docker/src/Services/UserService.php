@@ -9,6 +9,11 @@ use App\Entity\Property;
 use App\Entity\Agent;
 use App\Entity\Customer;
 use App\Entity\User;
+use App\Enum\Role;
+use App\Repository\AgentRepository;
+use App\Repository\CustomerRepository;
+use App\Repository\PropertyRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\Pagination\Paginator;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -17,18 +22,24 @@ use Symfony\Component\Uid\Uuid;
 class UserService
 {
 
-    public function __construct(private EntityManagerInterface $em, private UserPasswordHasherInterface $passwordHarsher)
+    public function __construct(
+        private readonly UserRepository $userRepository,
+        private readonly CustomerRepository $customerRepository,
+        private readonly PropertyRepository $propertyRepository,
+        private readonly UserPasswordHasherInterface $passwordHarsher,
+        private readonly EntityManagerInterface $em,
+    )
     {}
 
     public function register(RegisterDto $registerDto): User {
-        $existingUser = $this->em->getRepository(User::class)->findOneBy(["email"=> $registerDto->email]);
+        $existingUser = $this->userRepository->findOneBy(["email"=> $registerDto->email]);
         if($existingUser) {
             return new Customer();
         }
 
         $user = match ($registerDto->role) {
-            "ROLE_AGENT" => new Agent(),
-            'ROLE_CUSTOMER' => new Customer(),
+            Role::AGENT->value => new Agent(),
+            Role::CUSTOMER->value => new Customer(),
             default => throw new \Exception('invalid role'),
         };
         $user->setName($registerDto->name);
@@ -46,7 +57,7 @@ class UserService
 
     public function blockUser(Uuid $userId): void
     {
-        $user = $this->em->getRepository(User::class)->find($userId);
+        $user = $this->userRepository->find($userId);
         $user->setIsBlocked(true);
         $this->em->persist($user);
         $this->em->flush();
@@ -54,14 +65,14 @@ class UserService
 
     public function unblockUser(Uuid $userId): void
     {
-        $user = $this->em->getRepository(User::class)->find($userId);
+        $user = $this->userRepository->find($userId);
         $user->setIsBlocked(false);
         $this->em->persist($user);
         $this->em->flush();
     }
 
     public function updateProfile(Uuid $userId, UpdateProfileDto $newUser): User {
-        $existingUser = $this->em->getRepository(User::class)->find($userId);
+        $existingUser = $this->userRepository->find($userId);
         if ($newUser->name)
             $existingUser->setName($newUser->name);
         if ($newUser->email)
@@ -99,13 +110,13 @@ class UserService
 
     public function getUserById(Uuid $userId): User
     {
-        return $this->em->getRepository(User::class)->find($userId);
+        return $this->userRepository->find($userId);
     }
 
     public function addFavorite(Uuid $userId, Uuid $propertyId): Customer
     {
-        $customer = $this->em->getRepository(Customer::class)->find($userId);
-        $property = $this->em->getRepository(Property::class)->find($propertyId);
+        $customer = $this->customerRepository->find($userId);
+        $property = $this->propertyRepository->find($propertyId);
         $customer->addFavoriteProperty($property);
         $this->em->persist($customer);
         $this->em->flush();
@@ -114,8 +125,8 @@ class UserService
 
     public function removeFavorite(Uuid $userId, Uuid $propertyId): Customer
     {
-        $customer = $this->em->getRepository(Customer::class)->find($userId);
-        $property = $this->em->getRepository(Property::class)->find($propertyId);
+        $customer = $this->customerRepository->find($userId);
+        $property = $this->propertyRepository->find($propertyId);
         $customer->removeFavoriteProperty($property);
         $this->em->persist($customer);
         $this->em->flush();

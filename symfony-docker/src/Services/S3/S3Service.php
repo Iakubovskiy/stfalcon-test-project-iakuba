@@ -6,15 +6,18 @@ namespace App\Services\S3;
 
 use Aws\Credentials\Credentials;
 use Aws\S3\S3Client;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Response;
 
 readonly class S3Service
 {
     private S3Client $s3Client;
-    private string $bucket;
+
 
     public function __construct(
-        private S3Config $config
+        private S3Config $config,
+        #[Autowire(env: 'S3_BUCKET')]
+        private string $bucket,
     )
     {
         $parameters = [
@@ -28,7 +31,6 @@ readonly class S3Service
         }
 
         $this->s3Client = new S3Client($parameters);
-        $this->bucket = $_ENV['S3_BUCKET'] ?? throw new \RuntimeException('S3_BUCKET не налаштовано');
     }
 
     private function generateFileUrl(string $key):string

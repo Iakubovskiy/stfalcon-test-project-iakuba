@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Enum\Role;
 use App\Repository\CustomerRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -14,7 +15,7 @@ use Symfony\Component\Uid\Uuid;
 class Customer extends User
 {
     public function __construct(){
-        $this->roles = ["ROLE_CUSTOMER"];
+        $this->roles = [Role::CUSTOMER->value];
         $this->favoriteProperties = new ArrayCollection();
     }
 

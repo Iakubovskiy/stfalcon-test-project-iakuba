@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Enum\Role;
 use App\Repository\AdminRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
@@ -12,6 +13,6 @@ use Symfony\Component\Uid\Uuid;
 class Admin extends User
 {
     public function __construct(){
-        $this->roles = ["ROLE_ADMIN"];
+        $this->roles = [Role::ADMIN->value];
     }
 }

@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Enum\Role;
 use App\Repository\AgentRepository;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -15,7 +16,7 @@ class Agent extends User
 
     public function __construct()
     {
-        $this->roles = ["ROLE_AGENT"];
+        $this->roles = [Role::AGENT->value];
     }
 
     public function getProperties(): Collection

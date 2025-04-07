@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\DTO;
 
+use App\Enum\Role;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class RegisterDto
@@ -10,7 +11,7 @@ class RegisterDto
     public function __construct(
         #[Assert\NotBlank]
         #[Assert\Choice(
-            choices: ['ROLE_ADMIN', 'ROLE_AGENT', 'ROLE_CUSTOMER'],
+            choices: [Role::AGENT->value, Role::ADMIN->value, Role::CUSTOMER->value],
             message: 'Choose a valid role: {{ choices }}'
         )]
         public readonly string $role,
