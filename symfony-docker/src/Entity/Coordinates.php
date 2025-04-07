@@ -17,7 +17,7 @@ class Coordinates
         return $this->latitude;
     }
 
-    public function setLatitude(float $latitude): static
+    public function setLatitude(float $latitude): self
     {
         $this->latitude = $latitude;
         return $this;
@@ -28,7 +28,7 @@ class Coordinates
         return $this->longitude;
     }
 
-    public function setLongitude(float $longitude): static
+    public function setLongitude(float $longitude): self
     {
         $this->longitude = $longitude;
         return $this;

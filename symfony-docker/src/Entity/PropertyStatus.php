@@ -6,13 +6,17 @@ namespace App\Entity;
 use App\Repository\PropertyStatusRepository;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: PropertyStatusRepository::class)]
 class PropertyStatus
 {
     #[ORM\Id]
-    #[ORM\Column]
-    private ?string $id = null;
+    #[ORM\Column(type: UuidType::NAME, unique: true)]
+    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
+    #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
+    protected ?Uuid $id = null;
 
     #[ORM\Column(length: 50)]
     private ?string $name = null;
@@ -20,15 +24,9 @@ class PropertyStatus
     #[ORM\OneToMany(targetEntity: Property::class, mappedBy: 'status')]
     private Collection $properties;
 
-    public function getId(): ?string
+    public function getId(): ?Uuid
     {
         return $this->id;
-    }
-
-    public function setId(string $id): static
-    {
-        $this->id = $id;
-        return $this;
     }
 
     public function getName(): ?string
@@ -36,7 +34,7 @@ class PropertyStatus
         return $this->name;
     }
 
-    public function setName(string $name): static
+    public function setName(string $name): self
     {
         $this->name = $name;
 
@@ -48,7 +46,7 @@ class PropertyStatus
         return $this->properties;
     }
 
-    public function setProperties(Collection $properties): static
+    public function setProperties(Collection $properties): self
     {
         $this->properties = $properties;
         return $this;

@@ -11,7 +11,7 @@ class PropertyCreateDto
     public function __construct(
         #[Assert\NotBlank]
         #[Assert\Length(min: 1, max: 100)]
-        public readonly string $propertyTypeId,
+        public readonly Uuid $propertyTypeId,
 
         #[Assert\NotBlank]
         #[Assert\Uuid]
@@ -21,8 +21,8 @@ class PropertyCreateDto
         public readonly float $priceAmount,
 
         #[Assert\NotBlank]
-        #[Assert\Length(min: 3, max: 4)]
-        public readonly string $priceCurrencyId,
+        #[Assert\Length(min: 1, max: 100)]
+        public readonly Uuid $priceCurrencyId,
 
         #[Assert\NotBlank]
         public float $latitude,

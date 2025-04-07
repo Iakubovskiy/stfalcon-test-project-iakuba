@@ -4,57 +4,45 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Entity\PropertyStatus;
+use App\Repository\PropertyStatusRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Uid\Uuid;
 
-class StatusService
+readonly class StatusService
 {
-    public function __construct( private EntityManagerInterface $entityManager)
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private PropertyStatusRepository $propertyStatusRepository,
+    )
     {}
 
     public function getAllStatuses(): array
     {
-        try {
-            return $this->entityManager->getRepository(PropertyStatus::class)->findAll();
-        } catch (\Exception $e) {
-            return [];
-        }
+        return $this->propertyStatusRepository->findAll();
     }
 
-    public function create(string $statusId, string $name): PropertyStatus
+    public function create(string $name): PropertyStatus
     {
-        try {
-            $status = new PropertyStatus();
-            $status->setId($statusId);
-            $status->setName($name);
-            $this->entityManager->persist($status);
-            $this->entityManager->flush();
-            return $status;
-        } catch (\Exception $e) {
-            throw new \Exception("Can't create status: " . $e->getMessage());
-        }
+        $status = new PropertyStatus();
+        $status->setName($name);
+        $this->entityManager->persist($status);
+        $this->entityManager->flush();
+        return $status;
     }
 
-    public function update(string $statusId, string $name): PropertyStatus
+    public function update(Uuid $statusId, string $name): PropertyStatus
     {
-        try {
-            $status = $this->entityManager->getRepository(PropertyStatus::class)->find($statusId);
-            $status->setName($name);
-            $this->entityManager->flush();
-            return $status;
-        }catch (\Exception $e) {
-            throw new \Exception("Can't update status: " . $e->getMessage());
-        }
+        $status = $this->propertyStatusRepository->find($statusId);
+        $status->setName($name);
+        $this->entityManager->flush();
+        return $status;
     }
 
-    public function delete(string $statusId): bool
+    public function delete(Uuid $statusId): bool
     {
-        try {
-            $status = $this->entityManager->getRepository(PropertyStatus::class)->find($statusId);
+            $status = $this->propertyStatusRepository->find($statusId);
             $this->entityManager->remove($status);
             $this->entityManager->flush();
             return true;
-        } catch (\Exception $e) {
-            throw new \Exception("Can't delete status: " . $e->getMessage());
-        }
     }
 }

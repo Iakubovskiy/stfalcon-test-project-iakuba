@@ -29,9 +29,8 @@ class CreateTypeAction extends AbstractController
             description: "Type data",
             required: true,
             content: new OA\JsonContent(
-                required: ["id", "name"],
+                required: ["name"],
                 properties: [
-                    new OA\Property(property: "id", description: "Unique type identifier", type: "string", example: "PRODUCT_TYPE"),
                     new OA\Property(property: "name", description: "Type name", type: "string", example: "Product Type")
                 ],
                 type: "object"
@@ -62,11 +61,10 @@ class CreateTypeAction extends AbstractController
         if($data === []) {
             return new JsonResponse(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
         }
-        $id = $data['id'];
         $name = $data['name'];
 
         return new JsonResponse(
-            $this->propertyTypePresenter->present($this->typeService->createType($id, $name)),
+            $this->propertyTypePresenter->present($this->typeService->createType($name)),
             Response::HTTP_CREATED,
             [],
         );

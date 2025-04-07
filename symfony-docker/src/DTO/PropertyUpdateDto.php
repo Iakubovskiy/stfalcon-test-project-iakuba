@@ -10,12 +10,12 @@ class PropertyUpdateDto
 {
     public function __construct(
         #[Assert\Length(min: 1, max: 100)]
-        public readonly ?string $propertyTypeId = null,
+        public readonly ?Uuid $propertyTypeId = null,
 
         public readonly ?float $priceAmount = null,
 
-        #[Assert\Length(min: 3, max: 4)]
-        public readonly ?string $priceCurrencyId = null,
+        #[Assert\Length(min: 1, max: 100)]
+        public readonly ?Uuid $priceCurrencyId = null,
 
         public ?float $latitude = null,
 

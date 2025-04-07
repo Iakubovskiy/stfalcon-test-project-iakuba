@@ -51,7 +51,7 @@ class Property
         return $this->description;
     }
 
-    public function setDescription(string $description): static
+    public function setDescription(string $description): self
     {
         $this->description = $description;
 
@@ -63,7 +63,7 @@ class Property
         return $this->price;
     }
 
-    public function setPrice(Price $price): static
+    public function setPrice(Price $price): self
     {
         $this->price = $price;
         return $this;
@@ -74,7 +74,7 @@ class Property
         return $this->size;
     }
 
-    public function setSize(PropertySize $size): static
+    public function setSize(PropertySize $size): self
     {
         $this->size = $size;
         return $this;
@@ -85,7 +85,7 @@ class Property
         return $this->location;
     }
 
-    public function setLocation(PropertyLocation $location): static
+    public function setLocation(PropertyLocation $location): self
     {
         $this->location = $location;
         return $this;
@@ -96,7 +96,7 @@ class Property
         return $this->agent;
     }
 
-    public function setAgent(Agent $agent): static
+    public function setAgent(Agent $agent): self
     {
         $this->agent = $agent;
         return $this;
@@ -107,7 +107,7 @@ class Property
         return $this->status;
     }
 
-    public function setStatus(PropertyStatus $status): static
+    public function setStatus(PropertyStatus $status): self
     {
         $this->status = $status;
         return $this;
@@ -118,7 +118,7 @@ class Property
         return $this->type;
     }
 
-    public function setType(PropertyType $type): static
+    public function setType(PropertyType $type): self
     {
         $this->type = $type;
         return $this;
@@ -132,19 +132,6 @@ class Property
     public function setPhotoUrls(array $photoUrls): self
     {
         $this->photoUrls = $photoUrls;
-        return $this;
-    }
-
-    public function addPhotoUrl(string $photoUrl): self
-    {
-        $this->photoUrls[] = $photoUrl;
-        return $this;
-    }
-
-    public function removePhotoUrl(string $photoUrl): self
-    {
-        $index = array_search($photoUrl, $this->photoUrls);
-        unset($this->photoUrls[$index]);
         return $this;
     }
 }

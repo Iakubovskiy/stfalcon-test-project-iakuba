@@ -16,7 +16,7 @@ class PropertySize{
         return $this->value;
     }
 
-    public function setValue(float $value): static{
+    public function setValue(float $value): self{
         $this->value = $value;
         return $this;
     }
@@ -25,7 +25,7 @@ class PropertySize{
         return $this->measurement;
     }
 
-    public function setMeasurement(string $measurement): static{
+    public function setMeasurement(string $measurement): self{
         $this->measurement = $measurement;
         return $this;
     }

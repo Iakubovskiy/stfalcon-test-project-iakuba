@@ -5,13 +5,17 @@ namespace App\Entity;
 use App\Repository\PropertyTypeRepository;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: PropertyTypeRepository::class)]
 class PropertyType
 {
     #[ORM\Id]
-    #[ORM\Column]
-    private ?string $id = null;
+    #[ORM\Column(type: UuidType::NAME, unique: true)]
+    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
+    #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
+    protected ?Uuid $id = null;
 
     #[ORM\Column(length: 50)]
     private ?string $name = null;
@@ -19,15 +23,9 @@ class PropertyType
     #[ORM\OneToMany(targetEntity: Property::class, mappedBy: 'type')]
     private Collection $properties;
 
-    public function getId(): ?string
+    public function getId(): ?Uuid
     {
         return $this->id;
-    }
-
-    public function setId(string $id): static
-    {
-        $this->id = $id;
-        return $this;
     }
 
     public function getName(): ?string
@@ -35,7 +33,7 @@ class PropertyType
         return $this->name;
     }
 
-    public function setName(string $name): static
+    public function setName(string $name): self
     {
         $this->name = $name;
 
@@ -45,11 +43,5 @@ class PropertyType
     public function getProperties(): Collection
     {
         return $this->properties;
-    }
-
-    public function setProperties(Collection $properties): static
-    {
-        $this->properties = $properties;
-        return $this;
     }
 }

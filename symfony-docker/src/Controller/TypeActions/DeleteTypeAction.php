@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use OpenApi\Attributes as OA;
+use Symfony\Component\Uid\Uuid;
 
 class DeleteTypeAction extends AbstractController
 {
@@ -42,7 +43,7 @@ class DeleteTypeAction extends AbstractController
             new OA\Response(response: 403, description: "Forbidden - Insufficient permissions")
         ]
     )]
-    public function deleteType(string $id): JsonResponse
+    public function deleteType(Uuid $id): JsonResponse
     {
         $this->typeService->deleteType($id);
         return new JsonResponse(Response::HTTP_NO_CONTENT);

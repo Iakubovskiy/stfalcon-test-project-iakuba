@@ -4,55 +4,47 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Entity\PropertyType;
+use App\Repository\PropertyTypeRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Uid\Uuid;
 
-class TypeService
+readonly class TypeService
 {
 
-    public function __construct(private EntityManagerInterface $entityManager)
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private PropertyTypeRepository $propertyTypeRepository,
+    )
     {}
 
     public function getTypes(): array
     {
-        return $this->entityManager->getRepository(PropertyType::class)->findAll();
+        return $this->propertyTypeRepository->findAll();
     }
 
-    public function createType(string $propertyTypeId, string $name): PropertyType
+    public function createType(string $name): PropertyType
     {
-        try {
-            $type = new PropertyType();
-            $type->setId($propertyTypeId);
-            $type->setName($name);
-            $this->entityManager->persist($type);
-            $this->entityManager->flush();
-            return $type;
-        } catch (\Exception $e){
-            throw new \Exception("Can't create type: " . $e->getMessage());
-        }
+        $type = new PropertyType();
+        $type->setName($name);
+        $this->entityManager->persist($type);
+        $this->entityManager->flush();
+        return $type;
     }
 
-    public function updateType(string $propertyTypeId, string $name): PropertyType
+    public function updateType(Uuid $propertyTypeId, string $name): PropertyType
     {
-        try {
-            $type = $this->entityManager->getRepository(PropertyType::class)->find($propertyTypeId);
-            $type->setName($name);
-            $this->entityManager->persist($type);
-            $this->entityManager->flush();
-            return $type;
-        } catch (\Exception $e){
-            throw new \Exception("Can't update type: " . $e->getMessage());
-        }
+        $type = $this->propertyTypeRepository->find($propertyTypeId);
+        $type->setName($name);
+        $this->entityManager->persist($type);
+        $this->entityManager->flush();
+        return $type;
     }
 
-    public function deleteType(string $propertyTypeId): bool
+    public function deleteType(Uuid $propertyTypeId): bool
     {
-        try {
-            $type = $this->entityManager->getRepository(PropertyType::class)->find($propertyTypeId);
-            $this->entityManager->remove($type);
-            $this->entityManager->flush();
-            return true;
-        } catch (\Exception $e){
-            throw new \Exception("Can't delete type: " . $e->getMessage());
-        }
+        $type = $this->propertyTypeRepository->find($propertyTypeId);
+        $this->entityManager->remove($type);
+        $this->entityManager->flush();
+        return true;
     }
 }

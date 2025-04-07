@@ -7,7 +7,6 @@ namespace App\Services\S3;
 use Aws\Credentials\Credentials;
 use Aws\S3\S3Client;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\HttpFoundation\Response;
 
 readonly class S3Service
 {
@@ -18,6 +17,10 @@ readonly class S3Service
         private S3Config $config,
         #[Autowire(env: 'S3_BUCKET')]
         private string $bucket,
+        #[Autowire(env: 'DOMAIN')]
+        private string $domain,
+        #[Autowire(env: 'PROTOCOL')]
+        private string $protocol,
     )
     {
         $parameters = [
@@ -35,7 +38,7 @@ readonly class S3Service
 
     private function generateFileUrl(string $key):string
     {
-        return 'https://'.$this->bucket.'.s3.amazonaws.com/'.$key;
+        return $this->protocol.$this->bucket.$this->domain.$key;
     }
 
     public function uploadFileByBody(string $key, string $body): string

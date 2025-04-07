@@ -29,9 +29,8 @@ class CreateStatusAction extends AbstractController
             description: "Status data",
             required: true,
             content: new OA\JsonContent(
-                required: ["id", "name"],
+                required: ["name"],
                 properties: [
-                    new OA\Property(property: "id", description: "Unique status identifier", type: "string", example: "COMPLETED"),
                     new OA\Property(property: "name", description: "Status name", type: "string", example: "Completed")
                 ],
                 type: "object"
@@ -62,11 +61,10 @@ class CreateStatusAction extends AbstractController
         if($data === []) {
             return new JsonResponse(['error' => 'Invalid JSON body'], Response::HTTP_BAD_REQUEST);
         }
-        $id = $data['id'];
         $name = $data['name'];
 
         return new JsonResponse(
-            $this->propertyStatusPresenter->present($this->statusService->create($id, $name)),
+            $this->propertyStatusPresenter->present($this->statusService->create($name)),
             Response::HTTP_CREATED,
             [],
         );

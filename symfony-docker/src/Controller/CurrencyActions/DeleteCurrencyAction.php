@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use OpenApi\Attributes as OA;
+use Symfony\Component\Uid\Uuid;
 
 class DeleteCurrencyAction extends AbstractController
 {
@@ -41,7 +42,7 @@ class DeleteCurrencyAction extends AbstractController
             new OA\Response(response: 403, description: "Forbidden - Insufficient permissions")
         ]
     )]
-    public function deleteCurrency(string $id): JsonResponse
+    public function deleteCurrency(Uuid $id): JsonResponse
     {
         $this->currencyService->deleteCurrency($id);
         return new JsonResponse(

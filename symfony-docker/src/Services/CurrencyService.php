@@ -4,23 +4,27 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Entity\Currency;
+use App\Repository\CurrencyRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Uid\Uuid;
 
-class CurrencyService
+readonly class CurrencyService
 {
 
-    public function __construct(private EntityManagerInterface $entityManager)
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private CurrencyRepository $currencyRepository,
+    )
     {}
 
     public function getCurrencies(): array
     {
-        return $this->entityManager->getRepository(Currency::class)->findAll();
+        return $this->currencyRepository->findAll();
     }
 
-    public function createCurrency(string $id, string $name): Currency
+    public function createCurrency(string $name): Currency
     {
         $currency = new Currency();
-        $currency->setId($id);
         $currency->setName($name);
         $this->entityManager->persist($currency);
         $this->entityManager->flush();
@@ -28,27 +32,21 @@ class CurrencyService
         return $currency;
     }
 
-    public function updateCurrency(string $currency_id, string $name): Currency
+    public function updateCurrency(Uuid $currency_id, string $name): Currency
     {
-        $currency = $this->entityManager->getRepository(Currency::class)->find($currency_id);
+        $currency = $this->currencyRepository->find($currency_id);
         $currency->setName($name);
         $this->entityManager->persist($currency);
         $this->entityManager->flush();
         return $currency;
     }
 
-    public function deleteCurrency(string $currency_id): bool
+    public function deleteCurrency(Uuid $currency_id): bool
     {
-        try {
-            $currency = $this->entityManager->getRepository(Currency::class)->find($currency_id);
-            $this->entityManager->remove($currency);
-            $this->entityManager->flush();
-            return true;
-        }
-        catch (\Exception $e) {
-            throw new \Exception("Can't delete currency: " . $e->getMessage());
-        }
-
+        $currency = $this->currencyRepository->find($currency_id);
+        $this->entityManager->remove($currency);
+        $this->entityManager->flush();
+        return true;
     }
 
     public function convertCurrency(string $currency_from_id, string $currency_to_id, float $amount): float
@@ -67,30 +65,24 @@ class CurrencyService
                 switch ($currency_to_id) {
                     case 'uah':
                         return 41.45;
-                        break;
                     case 'eur':
                         return 0.93;
-                        break;
                 }
                 break;
             case 'eur':
                 switch ($currency_to_id) {
                     case 'uah':
                         return 44.74;
-                        break;
                     case 'usd':
                         return 1.08;
-                        break;
                 }
                 break;
             case 'uah':
                 switch ($currency_to_id) {
                     case 'usd':
                         return 0.024;
-                        break;
                     case 'eur':
                         return 0.022;
-                        break;
                 }
                 break;
         }

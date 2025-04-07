@@ -12,6 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use OpenApi\Attributes as OA;
+use Symfony\Component\Uid\Uuid;
 
 class UpdateTypeAction extends AbstractController
 {
@@ -64,7 +65,7 @@ class UpdateTypeAction extends AbstractController
             new OA\Response(response: 403, description: "Forbidden - Insufficient permissions")
         ]
     )]
-    public function updateType(Request $request, string $id): JsonResponse
+    public function updateType(Request $request, Uuid $id): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
         if($data === []) {

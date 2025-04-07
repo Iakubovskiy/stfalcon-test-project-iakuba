@@ -28,9 +28,8 @@ class CreateCurrencyAction extends AbstractController
             description: "Currency data",
             required: true,
             content: new OA\JsonContent(
-                required: ["id", "name"],
+                required: ["name"],
                 properties: [
-                    new OA\Property(property: "id", description: "Unique currency code (e.g., UAH)", type: "string", example: "UAH"),
                     new OA\Property(property: "name", description: "Currency name", type: "string", example: "Ukrainian Hryvnia")
                 ],
                 type: "object"
@@ -61,10 +60,9 @@ class CreateCurrencyAction extends AbstractController
         if($data===[]){
             return new JsonResponse(null,Response::HTTP_BAD_REQUEST);
         }
-        $id = $data["id"];
         $name = $data["name"];
         return new JsonResponse(
-            $this->currencyPresenter->present($this->currencyService->createCurrency($id, $name)),
+            $this->currencyPresenter->present($this->currencyService->createCurrency($name)),
             Response::HTTP_CREATED,
             [],
         );

@@ -40,7 +40,7 @@ abstract class User implements UserInterface, PasswordAuthenticatedUserInterface
     protected array $roles = [];
 
     /**
-     * @var string The hashed password
+     * @var ?string The hashed password
      */
     #[ORM\Column]
     protected ?string $password = null;
@@ -64,7 +64,7 @@ abstract class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->email;
     }
 
-    public function setEmail(string $email): static
+    public function setEmail(string $email): self
     {
         $this->email = $email;
 
@@ -98,7 +98,7 @@ abstract class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @param list<string> $roles
      */
-    public function setRoles(array $roles): static
+    public function setRoles(array $roles): self
     {
         $this->roles = $roles;
 
@@ -113,7 +113,7 @@ abstract class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->password;
     }
 
-    public function setPassword(string $password): static
+    public function setPassword(string $password): self
     {
         $this->password = $password;
 
@@ -133,7 +133,7 @@ abstract class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->phone;
     }
 
-    public function setPhone(string $phone): static{
+    public function setPhone(string $phone): self{
         $this->phone = $phone;
         return $this;
     }
@@ -142,7 +142,7 @@ abstract class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->name;
     }
 
-    public function setName(string $name): static{
+    public function setName(string $name): self{
         $this->name = $name;
         return $this;
     }
@@ -151,7 +151,7 @@ abstract class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->isBlocked;
     }
 
-    public function setIsBlocked(bool $isBlocked): static{
+    public function setIsBlocked(bool $isBlocked): self{
         $this->isBlocked = $isBlocked;
         return $this;
     }

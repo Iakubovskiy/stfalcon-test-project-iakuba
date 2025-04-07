@@ -1,38 +1,38 @@
 <?php
-declare(strict_types=1);
 
 namespace App\Entity;
 
-use App\Repository\CurrencyRepository;
+use App\Repository\FileRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\Uid\Uuid;
 
-#[ORM\Entity(repositoryClass: CurrencyRepository::class)]
-class Currency
+#[ORM\Entity(repositoryClass: FileRepository::class)]
+class File
 {
     #[ORM\Id]
     #[ORM\Column(type: UuidType::NAME, unique: true)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
-    protected ?Uuid $id = null;
+    private ?Uuid $id = null;
 
-    #[ORM\Column(length: 5)]
-    private ?string $name = null;
+    #[ORM\Column(length: 255)]
+    private ?string $url = null;
 
     public function getId(): ?Uuid
     {
         return $this->id;
     }
 
-    public function getName(): ?string
+    public function getUrl(): ?string
     {
-        return $this->name;
+        return $this->url;
     }
 
-    public function setName(string $name): self
+    public function setUrl(string $url): self
     {
-        $this->name = $name;
+        $this->url = $url;
+
         return $this;
     }
 }

@@ -18,7 +18,7 @@ class PropertyLocation
         return $this->address;
     }
 
-    public function setAddress(string $address): static
+    public function setAddress(string $address): self
     {
         $this->address = $address;
         return $this;
@@ -29,7 +29,7 @@ class PropertyLocation
         return $this->coordinates;
     }
 
-    public function setCoordinates(Coordinates $coordinates): static
+    public function setCoordinates(Coordinates $coordinates): self
     {
         $this->coordinates = $coordinates;
         return $this;
